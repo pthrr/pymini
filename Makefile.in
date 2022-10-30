@@ -1,0 +1,352 @@
+#
+#  Makefile.in - make input file
+#
+#  (c) 2010-2015 Copyright Eckler Software
+# 
+#  Author: David Suffield, dsuffiel@ecklersoft.com
+#
+
+SHELL = /bin/sh
+VPATH = @srcdir@
+
+subdirs = @subdirs@
+top_srcdir = @top_srcdir@
+srcdir = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+datarootdir=@datarootdir@
+infodir = @infodir@
+libdir = @libdir@
+docdir = $(datarootdir)/doc/@PACKAGE_NAME@
+mandir = @mandir@
+emcdir = $(datarootdir)/@PACKAGE_NAME@
+emcrulesdir = /etc/udev/rules.d
+
+CC = @CC@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+CFLAGS =  @CFLAGS@ 
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+DEFS = @DEFS@
+INSTALL = @INSTALL@
+VERSION = @PACKAGE_VERSION@
+
+PACKAGE = @PACKAGE_NAME@
+EXEEXT = @EXEEXT@
+INSTALL_DATA = $(INSTALL) -m 644
+INSTALL_PROGRAM = $(INSTALL)
+INSTALL_SCRIPT = $(INSTALL)
+mkinstalldirs = $(INSTALL) -d
+host = @host@
+EPM_PACKAGE = @PACKAGE_NAME@
+
+platform = @platform@
+relnum = @relnum@
+DLL_EXTENSION = @dll_extension@
+mingw_path = @mingw_path@
+mingw_build = @mingw_build@
+mingw_inc_path = @mingw_inc_path@
+mingw_lib_path = @mingw_lib_path@
+mini_build = @mini_build@
+darwin_build = @darwin_build@
+linux_build = @linux_build@
+host_cpu = @host_cpu@
+osx_version = @osx_version@
+
+BUNDLE = $(PACKAGE).app
+DLL_NAME = rtstepperemc_py
+
+INCLUDES = -I./ -Irs274ngc
+
+CFLAGS += -std=gnu99
+
+ifeq ($(mingw_build),no)
+CFLAGS += -fvisibility=hidden
+CXXFLAGS += -fvisibility=hidden -fvisibility-inlines-hidden
+bin_name = $(platform)
+INI_PATH = rtstepper.ini
+PLUGIN_PATH = plugin
+DLL_PATH = $(DLL_NAME).$(DLL_EXTENSION)
+endif
+
+ifeq ($(darwin_build),yes)
+docdir = doc
+INI_PATH = rtstepper.ini
+PLUGIN_PATH = plugin
+DLL_PATH = $(DLL_NAME).$(DLL_EXTENSION)
+endif
+
+ifeq ($(mingw_build),yes)
+docdir = doc
+INI_PATH = rtstepper.ini
+PLUGIN_PATH = plugin
+DLL_PATH = $(DLL_NAME).$(DLL_EXTENSION)
+WINDRES = $(host)-windres
+LAUNCH_TARGET = pymini$(EXEEXT) 
+ifeq ($(host_cpu),i686)
+bin_name = win32
+PYTHON_EMBED = win32_embed/python-3.5.3-embed-win32
+WIN_LIBGCC = libgcc_s_sjlj-1.dll
+endif
+ifeq ($(host_cpu),x86_64)
+bin_name = win64
+PYTHON_EMBED = win64_embed/python-3.5.3-embed-amd64
+WIN_LIBGCC = libgcc_s_seh-1.dll
+endif
+endif
+
+DEFS += -DLINELEN=255 -DDLL_EXTENSION=\"$(DLL_EXTENSION)\"
+
+dist_doc_DATA = \
+doc/COPYING doc/pymini.html doc/dongle_rj11.jpg doc/input_pins.png doc/db25_rj11.png doc/sig.png doc/pymini_annotated2.png \
+doc/sensor_3k_2000_sm.png doc/rj12.png doc/leonardo_pwm_sm.png
+
+dist_noinst_SCRIPTS = \
+bootstrap configure.ac config.guess install-sh configure config.sub \
+green_led.svg red_led.svg orange_led.svg create_led.py create-dmg pymini_annotated.svg test_cancel.py test_estop.py \
+pymini.desktop
+
+dist_noinst_DATA = \
+Makefile.in aclocal.m4 rtstepper.inf
+
+dist_MINI_SCRIPTS = \
+pymini.py pyemc.py arduino.py backplot.py led.py rt-test.py tooltable.py fixture.py pycircle.py
+
+dist_PLUGIN_SCRIPTS = \
+plugin/__init__.py plugin/m190.py plugin/m3.py plugin/m4.py plugin/m5.py plugin/m6.py plugin/m7.py plugin/m8.py \
+plugin/m9.py plugin/m191.py plugin/m192.py plugin/m193.py plugin/m194.py plugin/m195.py plugin/m196.py plugin/m197.py
+
+dist_CONF_DATA = \
+rtstepper.ini
+
+dist_DATA = \
+55-rt-stepper.rules $(dist_CONF_DATA) 
+
+dist_SOURCE_INC = \
+bug.h emc.h ini.h list.h posemath.h tp.h tc.h emcpos.h emctool.h rtstepper.h
+
+dist_RS274NGC_INC = \
+rs274ngc/canon.h rs274ngc/interp_internal.h \
+rs274ngc/interpl.h rs274ngc/interp_queue.h rs274ngc/interp_return.h \
+rs274ngc/linklist.h rs274ngc/posemath.h rs274ngc/rs274ngc.h rs274ngc/rs274ngc_interp.h \
+rs274ngc/rs274ngc_return.h rs274ngc/units.h
+
+dist_RS274NGC_SOURCE = \
+rs274ngc/interp_arc.cc rs274ngc/interp_array.cc rs274ngc/interp_check.cc rs274ngc/interp_convert.cc rs274ngc/interp_queue.cc \
+rs274ngc/interp_cycles.cc rs274ngc/interp_execute.cc rs274ngc/interp_find.cc rs274ngc/interp_internal.cc rs274ngc/interp_inverse.cc \
+rs274ngc/interp_read.cc rs274ngc/interp_write.cc rs274ngc/interp_o_word.cc rs274ngc/nurbs_additional_functions.cc \
+rs274ngc/rs274ngc_pre.cc rs274ngc/interpl.cc rs274ngc/linklist.cc
+
+dist_SOURCE = \
+ui.c lookup.c ini.c dispatch.cc emccanon.cc posemath.cc _posemath.c tp.c tc.c motctl.c rtstepper.c
+
+dist_PYTEST_SOURCE = pytest.c
+
+dist_PYMINI_SOURCE = pymini.c
+
+RS274NGC_OBJ = $(addsuffix .o, $(basename $(dist_RS274NGC_SOURCE)))
+PYTEST_OBJ = $(addsuffix .o, $(basename $(dist_PYTEST_SOURCE)))
+PYMINI_OBJ = $(addsuffix .o, $(basename $(dist_PYMINI_SOURCE)))
+OBJ = $(addsuffix .o, $(basename $(dist_SOURCE))) $(RS274NGC_OBJ)
+
+# Default
+all: $(DLL_NAME).$(DLL_EXTENSION) pytest$(EXEEXT) $(LAUNCH_TARGET) version
+
+$(DLL_NAME).so: $(OBJ)
+	$(CXX) -shared -Wl,--no-undefined -o $@ $(OBJ) -L. $(LDFLAGS) $(LIBS) -lusb-1.0 -lpthread
+
+$(DLL_NAME).dylib: $(OBJ)
+	$(CXX) -shared -Wl,-undefined,error -o $@ $(OBJ) -Wl,-headerpad_max_install_names -L. $(LDFLAGS) $(LIBS) -lpthread -lusb-1.0
+
+pytest: $(PYTEST_OBJ)
+	$(CC) -o $@ $(PYTEST_OBJ) -L. $(LDFLAGS) $(LIBS) -ldl -lpthread
+
+pytest.exe: $(PYTEST_OBJ)
+	$(CC) -o $@ $(PYTEST_OBJ) -L. $(LDFLAGS) $(LIBS) -lpthread
+
+pymini.res: pymini.rc
+	$(WINDRES) $< -O coff -o $@
+
+pymini.exe: $(PYMINI_OBJ) pymini.res
+	$(CC) -o $@ $(PYMINI_OBJ) pymini.res -mwindows -L. $(LDFLAGS) $(LIBS) -lpython35
+
+$(DLL_NAME).dll: $(OBJ)
+	$(CXX) -shared -Wl,--no-undefined -o $@ $(OBJ) -L. $(LDFLAGS) $(LIBS) -lusb-1.0 -lpthread -lwsock32
+
+# Compile with pattern rules
+%.o: %.c $(dist_SOURCE_INC) $(dist_RS274NGC_INC)
+	$(CC) -c $< -o $@ $(CFLAGS) $(DEFS) $(INCLUDES) 
+%.o: %.cc $(dist_SOURCE_INC) $(dist_RS274NGC_INC)
+	$(CXX) -c $< -o $@ $(CXXFLAGS) $(DEFS) $(INCLUDES) 
+
+#
+# Install
+#
+install: all install_$(DLL_NAME).$(DLL_EXTENSION)
+
+# Install programs 
+install_$(DLL_NAME).so:
+	$(mkinstalldirs) $(DESTDIR)$(emcdir)
+	$(INSTALL) $(srcdir)/$(DLL_NAME).$(DLL_EXTENSION) $(DESTDIR)$(emcdir)
+	$(INSTALL_SCRIPT) $(srcdir)/$(dist_MINI_SCRIPTS) $(DESTDIR)$(emcdir)
+	$(INSTALL_SCRIPT) $(srcdir)/version.py $(DESTDIR)$(emcdir)
+	$(INSTALL_DATA) $(srcdir)/$(dist_CONF_DATA) $(DESTDIR)$(emcdir)
+	$(mkinstalldirs) $(DESTDIR)$(docdir)-$(VERSION)
+	$(INSTALL_DATA) $(srcdir)/$(dist_doc_DATA) $(DESTDIR)$(docdir)-$(VERSION)
+ifeq ($(linux_build),yes)
+	$(mkinstalldirs) $(DESTDIR)$(emcrulesdir)
+	$(INSTALL_DATA) $(srcdir)/55-rt-stepper.rules $(DESTDIR)$(emcrulesdir)
+endif
+	$(mkinstalldirs) $(DESTDIR)$(emcdir)/plugin
+	$(INSTALL_SCRIPT) $(srcdir)/$(dist_PLUGIN_SCRIPTS) $(DESTDIR)$(emcdir)/plugin
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	ln -sf ../share/$(PACKAGE)/pymini.py $(DESTDIR)$(bindir)/pymini
+	ln -sf ../share/$(PACKAGE)/rt-test.py $(DESTDIR)$(bindir)/rt-test
+
+#
+# Uninstall
+#
+uninstall: uninstall_$(DLL_NAME).$(DLL_EXTENSION)
+
+# Uninstall program
+uninstall_$(DLL_NAME).so:
+	rm -fr $(DESTDIR)$(emcdir)
+	rm -fr $(DESTDIR)$(docdir)-$(VERSION)
+ifeq ($(linux_build),yes)
+	rm -f $(DESTDIR)$(emcrulesdir)/55-rt-stepper.rules
+endif
+	rm -f $(DESTDIR)$(bindir)/pymini
+	rm -f $(DESTDIR)$(bindir)/rt-test
+
+# The following '@' prefix suppresses the shell commands from being echoed. 
+version:
+	@date=`date "+%m-%d-%Y_%H-%M-%S"`; \
+	echo "# This file is generated by the makefile, do NOT edit." > version.py; \
+	echo "class Version(object):" >> version.py; \
+	echo "   name = '$(PACKAGE)'" >> version.py; \
+	echo "   date = '$$date'" >> version.py; \
+	echo "   release = '$(VERSION)'" >> version.py; \
+	echo "   dll = '$(DLL_PATH)'" >> version.py; \
+	echo "   ini = '$(INI_PATH)'" >> version.py; \
+	echo "   plugin = '$(PLUGIN_PATH)'" >> version.py
+
+dist:
+	rm -fr $(PACKAGE)-$(VERSION)
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)
+	$(INSTALL_SCRIPT) $(dist_noinst_SCRIPTS) $(dist_MINI_SCRIPTS) $(dist_noinst_DATA) $(dist_DATA) $(PACKAGE)-$(VERSION)
+	$(INSTALL_DATA) $(dist_SOURCE) $(dist_PYTEST_SOURCE) $(dist_PYMINI_SOURCE) $(dist_SOURCE_INC) $(PACKAGE)-$(VERSION)
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)/rs274ngc
+	$(INSTALL_DATA) $(dist_RS274NGC_SOURCE) $(dist_RS274NGC_INC) $(PACKAGE)-$(VERSION)/rs274ngc
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)/plugin
+	$(INSTALL_SCRIPT) $(dist_PLUGIN_SCRIPTS) $(PACKAGE)-$(VERSION)/plugin
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)/doc
+	$(INSTALL_DATA) $(dist_doc_DATA) $(PACKAGE)-$(VERSION)/doc
+	tar czvf $(PACKAGE)-$(VERSION).tar.gz $(PACKAGE)-$(VERSION)
+	md5sum $(PACKAGE)-$(VERSION).tar.gz > $(PACKAGE)-$(VERSION).md5
+	rm -r $(PACKAGE)-$(VERSION)
+
+freeze:
+	rm -fr $(PACKAGE)-$(VERSION)-$(bin_name)
+	rm -fr $(PACKAGE)-$(VERSION)-$(bin_name).zip
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)-$(bin_name)/plugin
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)-$(bin_name)/doc
+	$(INSTALL_SCRIPT) $(dist_MINI_SCRIPTS) version.py pymini.desktop $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL_DATA) $(dist_DATA) $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL_SCRIPT) $(dist_PLUGIN_SCRIPTS) $(PACKAGE)-$(VERSION)-$(bin_name)/plugin
+	$(INSTALL_DATA) $(dist_doc_DATA) $(PACKAGE)-$(VERSION)-$(bin_name)/doc
+	$(INSTALL) $(DLL_NAME).$(DLL_EXTENSION) $(PACKAGE)-$(VERSION)-$(bin_name)
+	zip -r $(PACKAGE)-$(VERSION)-$(bin_name).zip $(PACKAGE)-$(VERSION)-$(bin_name)
+	md5sum $(PACKAGE)-$(VERSION)-$(bin_name).zip > $(PACKAGE)-$(VERSION)-$(bin_name).md5
+	rm -fr $(PACKAGE)-$(VERSION)-$(bin_name)
+
+win_freeze:
+	rm -fr $(PACKAGE)-$(VERSION)-$(bin_name).zip
+	rm -fr $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(mkinstalldirs) $(PACKAGE)-$(VERSION)-$(bin_name)/doc
+	$(INSTALL_DATA) $(dist_doc_DATA) $(PACKAGE)-$(VERSION)-$(bin_name)/doc
+	$(INSTALL) $(mingw_path)/libwinpthread-1.dll $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL) $(mingw_path)/$(WIN_LIBGCC) $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL) $(mingw_path)/libstdc++-6.dll $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL_SCRIPT) $(dist_MINI_SCRIPTS) $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL_SCRIPT) version.py $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(mkinstalldirs)  $(PACKAGE)-$(VERSION)-$(bin_name)/plugin
+	$(INSTALL_SCRIPT) $(dist_PLUGIN_SCRIPTS) $(PACKAGE)-$(VERSION)-$(bin_name)/plugin
+	$(INSTALL_DATA) $(dist_CONF_DATA) $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL) $(DLL_NAME).$(DLL_EXTENSION) $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL) $(mingw_path)/libusb-1.0.dll $(PACKAGE)-$(VERSION)-$(bin_name)
+	$(INSTALL) pymini.exe $(PACKAGE)-$(VERSION)-$(bin_name)
+	cp -r $(PYTHON_EMBED)/* $(PACKAGE)-$(VERSION)-$(bin_name)
+	zip -r $(PACKAGE)-$(VERSION)-$(bin_name).zip $(PACKAGE)-$(VERSION)-$(bin_name)
+	md5sum $(PACKAGE)-$(VERSION)-$(bin_name).zip > $(PACKAGE)-$(VERSION)-$(bin_name).md5	
+	rm -fr $(PACKAGE)-$(VERSION)-$(bin_name)
+
+win7_driver:
+	rm -fr $(PACKAGE)-win7-driver
+	rm -fr $(PACKAGE)-win7-driver.zip
+	$(mkinstalldirs) $(PACKAGE)-win7-driver/x86
+	$(INSTALL) x86/*dll $(PACKAGE)-win7-driver/x86/
+	$(mkinstalldirs) $(PACKAGE)-win7-driver/amd64
+	$(INSTALL) amd64/*dll $(PACKAGE)-win7-driver/amd64/
+	$(INSTALL_DATA) rtstepper.inf $(PACKAGE)-win7-driver/
+	zip -r $(PACKAGE)-win7-driver.zip $(PACKAGE)-win7-driver
+	md5sum $(PACKAGE)-win7-driver.zip > $(PACKAGE)-win7-driver.md5	
+	rm -fr $(PACKAGE)-win7-driver
+
+dmg:
+	rm -fr $(BUNDLE)
+	$(mkinstalldirs) $(BUNDLE)/Contents/MacOS/plugin
+	$(mkinstalldirs) $(BUNDLE)/Contents/Resources/doc
+	$(mkinstalldirs) $(BUNDLE)/Contents/Frameworks
+	$(INSTALL_SCRIPT) $(dist_MINI_SCRIPTS) $(BUNDLE)/Contents/MacOS
+	$(INSTALL_SCRIPT) version.py $(BUNDLE)/Contents/MacOS
+	$(INSTALL_SCRIPT) $(dist_PLUGIN_SCRIPTS) $(BUNDLE)/Contents/MacOS/plugin
+	$(INSTALL_DATA) $(dist_CONF_DATA) $(BUNDLE)/Contents/MacOS
+	$(INSTALL_DATA) $(dist_doc_DATA) $(BUNDLE)/Contents/Resources/doc
+	$(INSTALL_PROGRAM) $(DLL_NAME).$(DLL_EXTENSION) $(BUNDLE)/Contents/MacOS
+	$(INSTALL_PROGRAM) $(libdir)/libusb-1.0.0.dylib $(BUNDLE)/Contents/MacOS
+	install_name_tool -id @loader_path/$(DLL_NAME).$(DLL_EXTENSION) \
+	   $(BUNDLE)/Contents/MacOS/$(DLL_NAME).$(DLL_EXTENSION)
+	install_name_tool -change $(libdir)/libusb-1.0.0.dylib \
+	   @loader_path/libusb-1.0.0.dylib \
+	   $(BUNDLE)/Contents/MacOS/$(DLL_NAME).$(DLL_EXTENSION)
+	install_name_tool -id @loader_path/libusb-1.0.0.dylib \
+	   $(BUNDLE)/Contents/MacOS/libusb-1.0.0.dylib
+	echo "APPL????" >$(BUNDLE)/Contents/PkgInfo
+	echo \
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
+<plist version=\"1.0\">\n\
+<dict>\n\
+<key>CFBundleExecutable</key>\n\
+<string>pymini.py</string>\n\
+<key>CFBundleIdentifier</key>\n\
+<string>com.ecklersoft.pymini</string>\n\
+<key>CFBundleName</key>\n\
+<string>pymini</string>\n\
+<key>CFBundleGetInfoString</key>\n\
+<string>rtstepper pymini, (c) 2015 Copyright Eckler Software</string>\n\
+<key>CFBundleSignature</key>\n\
+<string>????</string>\n\
+<key>CFBundleShortVersionString</key>\n\
+<string>$(VERSION)</string>\n\
+<key>CFBundleInfoDictionaryVersion</key>\n\
+<string>6.0</string>\n\
+<key>CFBundlePackageType</key>\n\
+<string>APPL</string>\n\
+</dict>\n\
+</plist>\n" > $(BUNDLE)/Contents/Info.plist
+	./create-dmg --window-size 500 380 --volname $(PACKAGE)-$(VERSION) --icon "pymini" 110 55 --icon "rt-test" 380 55 \
+	  --icon "rtstepper.ini" 380 265 $(PACKAGE)-$(VERSION)-macosx-$(osx_version)-intel.dmg pymini.app
+	md5 $(PACKAGE)-$(VERSION)-macosx-$(osx_version)-intel.dmg > $(PACKAGE)-$(VERSION)-macosx-$(osx_version)-intel.md5
+
+gif:
+	convert -transparent white red_led.svg red_led.gif
+	convert -transparent white green_led.svg green_led.gif
+	convert -transparent white orange_led.svg orange_led.gif
+
+clean:	
+	rm -f *~ *.o *.pyc *.res rs274ngc/*~ rs274ngc/*.o plugin/*~ plugin/*.pyc doc/*~
+
+.PHONY: dist uninstall install all clean version gif freeze win_freeze dmg gif

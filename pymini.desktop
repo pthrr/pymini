@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=pymini
+Comment=rt-stepper dongle application
+Exec=bash -c "cd $(dirname %k) && python pymini.py"
+Icon=python
+Terminal=false
+StartupNotify=false
+Type=Application
+Categories=Utility;Application;
